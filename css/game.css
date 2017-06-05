@@ -1,0 +1,9 @@
+.background { 
+	background: rgb(52, 166, 251);
+    table-layout: fixed;
+    border-spacing: 0;   
+}
+.moon {
+	background: rgb(255, 255, 255);
+}
+
