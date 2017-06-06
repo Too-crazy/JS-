@@ -20,10 +20,12 @@ var tools = Object.create(null);	//控制区域中的工具对象
 var scale = 20;
 var paintrownum = 20;	//画布的行数
 var paintcolnum = 40;	//画布的列数
+var defaultElement = "g";
 
 function createPaint(parent){
 	var table = elt("table", {class: "background"});
 	table.style.width = paintcolnum*scale + "px";
+	table.elementType = defaultElement;	//给table加一个新属性，用来区分绘画的元素
 	for(var i=0; i<paintrownum; i++){
 		var rowElt = table.appendChild(elt("tr"));
 		rowElt.style.height = scale + "px"
@@ -51,6 +53,7 @@ controls.tool = function(table){
 	return elt("span", null, "Tools: ", select);
 }
 
+//用于获得画布中的网格坐标
 function getGridPos(event, element){
 	var rect = element.getBoundingClientRect();
 	var realX = Math.floor(event.clientX - rect.left);
@@ -59,8 +62,75 @@ function getGridPos(event, element){
 			y: Math.floor(realY/scale) };
 }
 
-tools.Point = function(event, table, onEnd){
+//工具函数，设置鼠标拖动的按键监听
+function trackDrag(onMove, onEnd){
+	function end(event){
+		removeEventListener("mousemove", onMove);
+		removeEventListener("mouseup", end);
+		if(onEnd)
+			onEnd(event);
+	}
+	addEventListener("mousemove", onMove);
+	addEventListener("mouseup", end);
+}
+
+//用于画线
+tools.Line = function(event, table, onEnd){
 	var pos = getGridPos(event, table);
-	console.log(pos.x + " " + pos.y);
-	table.childNodes[pos.y].childNodes[pos.x].className = "moon";
+	table.childNodes[pos.y].childNodes[pos.x].className = table.elementType;
+	trackDrag(function(event){
+		pos = getGridPos(event, table);
+		//console.log(pos.x + " " + pos.y);
+		if(pos.x>=0 && pos.y>=0 && pos.y<paintrownum && pos.x<paintcolnum)
+			table.childNodes[pos.y].childNodes[pos.x].className = table.elementType;
+	}, onEnd);
+}
+
+//画矩形
+tools.Rect = function(event, table, onEnd){
+	var pos = getGridPos(event, table);
+	var pos_start = pos;
+	table.childNodes[pos.y].childNodes[pos.x].className = table.elementType;
+	trackDrag(function(event){
+		pos = getGridPos(event, table);
+		if(pos.x>=0 && pos.y>=0 && pos.y<paintrownum && pos.x<paintcolnum){
+			for(var i=0; i<paintrownum; i++){
+				for(var j=0; j<paintcolnum; j++){
+					if(i>=pos_start.y && j>=pos_start.x && i<=pos.y && j<=pos.x)
+						table.childNodes[i].childNodes[j].className = table.elementType;
+					//else
+						//table.childNodes[i].childNodes[j].className = "background";
+				}
+			}
+		}
+	}, onEnd);
+}
+
+controls.element = function(table){
+	var select = elt("select");
+	select.appendChild(elt("option", null, table.elementType));
+	["r", "b", "eraser"].forEach(function(element){
+		select.appendChild(elt("option", null, element));
+	});
+	select.addEventListener("change", function(){
+		table.elementType = select.value;
+	});
+	return elt("span", null, "Elements: ", select);
+}
+
+controls.clear = function(table){
+	var button = elt("button");
+	button.textContent = "clear";
+	button.addEventListener("click", function(){
+		for(var i=0; i<paintrownum; i++){
+			for(var j=0; j<paintcolnum; j++){
+				table.childNodes[i].childNodes[j].className = null;
+			}
+		}
+	});
+	return button;
+}
+
+controls.picker = function(table){
+	
 }

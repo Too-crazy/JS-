@@ -3,7 +3,13 @@
     table-layout: fixed;
     border-spacing: 0;   
 }
-.moon {
-	background: rgb(255, 255, 255);
+.r {
+	background: rgb(255, 100, 100);
+}
+.g {
+	background: rgb(180, 255, 180);
+}
+.b {
+	background: rgb(100, 100, 255);
 }
 
