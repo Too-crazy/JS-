@@ -20,33 +20,65 @@ var tools = Object.create(null);	//控制区域中的工具对象
 var scale = 20;
 var paintrownum = 20;	//画布的行数
 var paintcolnum = 40;	//画布的列数
-var defaultElement = "g";
+var defaultElement = "wall";
+var grid = new Grid({width:paintcolnum, height:paintrownum});
+var gridSprites = document.createElement("img");
+gridSprites.src = "img/sprites.png";
+var spritesSeq = {"wall": 0, "lava": 1};
+
+function drawBackground(paint){
+	grid.eachCell(function(x, y, cell){
+		if(cell){
+			var tileX = spritesSeq[cell]*scale;
+			paint.drawImage(gridSprites,
+						tileX, 0, scale, scale,
+						x*scale, y*scale, scale, scale);
+		}
+	});
+}
+
+function runAnimation(paint){
+	var lastTime = null;
+	function frame(time){
+		if(lastTime != null){
+			var timeStep = Math.min(time - lastTime, 100) / 1000;
+			drawBackground(paint);
+		}
+		lastTime = time;
+		requestAnimationFrame(frame);
+	}
+	requestAnimationFrame(frame);
+}
 
 function createPaint(parent){
-	var table = elt("table", {class: "background"});
-	table.style.width = paintcolnum*scale + "px";
-	table.elementType = defaultElement;	//给table加一个新属性，用来区分绘画的元素
-	for(var i=0; i<paintrownum; i++){
-		var rowElt = table.appendChild(elt("tr"));
+	var paint = elt("table", {class: "background"});
+	var paint = elt("canvas");
+	paint.width = paintcolnum*scale;
+	paint.height = paintrownum*scale;
+	var cx = paint.getContext("2d");
+	cx.elementType = defaultElement;	//给cx加一个新属性，用来区分绘画的元素
+	/*for(var i=0; i<paintrownum; i++){
+		var rowElt = paint.appendChild(elt("tr"));
 		rowElt.style.height = scale + "px"
 		for(var j=0; j<paintcolnum; j++){
 			rowElt.appendChild(elt("td"));
 		}
-	}
+	}*/
+	runAnimation(cx);
 	var toolbar = elt("div", {class: "toolbar"});
 	for(var name in controls)
-		toolbar.appendChild(controls[name](table));
-	var panel = elt("div", {class: "drawpanel"}, table);
+		toolbar.appendChild(controls[name](cx));
+	var panel = elt("div", {class: "drawpanel"}, paint);
 	parent.appendChild(elt("div", null, panel, toolbar));
 }
 
-controls.tool = function(table){
+controls.tool = function(paint){
 	var select = elt("select");
 	for(var name in tools)
 		select.appendChild(elt("option", null, name));
-	table.addEventListener("mousedown", function(event){
+	paint.canvas.addEventListener("mousedown", function(event){
 		if(event.which==1){
-			tools[select.value](event, table);
+			tools[select.value](event, paint);
 			event.preventDefault();
 		}
 	});
@@ -63,91 +95,99 @@ function getGridPos(event, element){
 }
 
 //工具函数，设置鼠标拖动的按键监听
-function trackDrag(onMove, onEnd, table){
+function trackDrag(onMove, onEnd, paint){
 	function end(event){
 		removeEventListener("mousemove", onMove);
 		removeEventListener("mouseup", end);
 		if(onEnd)
 			onEnd(event);
 	}
-	if(table)
-		table.addEventListener("mousemove", onMove);
+	if(paint)
+		paint.addEventListener("mousemove", onMove);
 	else
 		addEventListener("mousemove", onMove);
 	addEventListener("mouseup", end);
 }
 
 //用于画线
-tools.Line = function(event, table, onEnd){
-	var pos = getGridPos(event, table);
-	table.childNodes[pos.y].childNodes[pos.x].className = table.elementType;
+tools.Line = function(event, paint, onEnd){
+	var pos = getGridPos(event, paint.canvas);
+	//paint.childNodes[pos.y].childNodes[pos.x].className = paint.elementType;
+	//var tileX = spritesSeq[paint.elementType]*scale;
+	//paint.drawImage(gridSprites,
+					//tileX, 0, scale, scale,
+					//pos.x*scale, pos.y*scale, scale, scale);
+	grid.insertTile(pos.x, pos.y, paint.elementType);
 	trackDrag(function(event){
-		pos = getGridPos(event, table);
+		pos = getGridPos(event, paint.canvas);
 		//console.log(pos.x + " " + pos.y);
-		if(pos.x>=0 && pos.y>=0 && pos.y<paintrownum && pos.x<paintcolnum)
-			table.childNodes[pos.y].childNodes[pos.x].className = table.elementType;
+		//if(pos.x>=0 && pos.y>=0 && pos.y<paintrownum && pos.x<paintcolnum)
+			//paint.childNodes[pos.y].childNodes[pos.x].className = paint.elementType;
+		//paint.drawImage(gridSprites,
+						//tileX, 0, scale, scale,
+						//pos.x*scale, pos.y*scale, scale, scale);
+		grid.insertTile(pos.x, pos.y, paint.elementType);
 	}, onEnd);
 }
 
 //画矩形
-tools.Rect = function(event, table, onEnd){
-	var pos = getGridPos(event, table);
+tools.Rect = function(event, paint, onEnd){
+	var pos = getGridPos(event, paint.canvas);
 	var pos_start = pos;
-	table.childNodes[pos.y].childNodes[pos.x].className = table.elementType;
+	//paint.childNodes[pos.y].childNodes[pos.x].className = paint.elementType;
+	var tileX = spritesSeq[paint.elementType]*scale;
+	paint.drawImage(gridSprites,
+					tileX, 0, scale, scale,
+					pos.x*scale, pos.y*scale, scale, scale);
 	trackDrag(function(event){
-		pos = getGridPos(event, table);
-		if(pos.x>=0 && pos.y>=0 && pos.y<paintrownum && pos.x<paintcolnum){
-			for(var i=0; i<paintrownum; i++){
-				for(var j=0; j<paintcolnum; j++){
-					if(i>=pos_start.y && j>=pos_start.x && i<=pos.y && j<=pos.x)
-						table.childNodes[i].childNodes[j].className = table.elementType;
-					//else
-						//table.childNodes[i].childNodes[j].className = "background";
-				}
-			}
-		}
-	}, onEnd, table);
+		pos = getGridPos(event, paint.canvas);
+		paint.drawImage(gridSprites,
+					tileX, 0, scale, scale,
+					pos.x*scale, pos.y*scale, (pos_start.x-pos.x)*scale, (pos_start.y-pos.y)*scale);
+	}, onEnd);
 }
 
 //调整位置
-tools.Pick = function(event, table, onEnd){
-	var pos = getGridPos(event, table);
-	var pickstyle = table.childNodes[pos.y].childNodes[pos.x].className;
-	table.childNodes[pos.y].childNodes[pos.x].className=null;
-	var pickout = elt("div", {class: pickstyle, style: "height:20px; width:20px; position:absolute"});
-	table.appendChild(pickout);
-	var rect = table.getBoundingClientRect();
+tools.Pick = function(event, paint, onEnd){
+	var pos = getGridPos(event, paint.canvas);
+	//var pickstyle = paint.childNodes[pos.y].childNodes[pos.x].className;
+	paint.childNodes[pos.y].childNodes[pos.x].className=null;
+	var pickout = elt("div", {style: "height:20px; width:20px; overflow:hidden; position:absolute"}
+						, elt("img", {src: "img/sprites.png"}));
+	paint.canvas.appendChild(pickout);
+	var rect = paint.canvas.getBoundingClientRect();
 	pickout.style.left = pos.x*scale+rect.left + "px";
 	pickout.style.top = pos.y*scale+rect.top + "px";
 	trackDrag(function(event){
-		pos = getGridPos(event, table);
+		pos = getGridPos(event, paint.canvas);
 		pickout.style.left = pos.x*scale+rect.left + "px";
 		pickout.style.top = pos.y*scale+rect.top + "px";
 	}, function(event){
-		table.childNodes[pos.y].childNodes[pos.x].className=pickstyle;
-		table.removeChild(pickout);
-	}, table);
+		paint.childNodes[pos.y].childNodes[pos.x].className=pickstyle;
+		paint.removeChild(pickout);
+	}, paint);
 }
 
-controls.element = function(table){
+controls.element = function(paint){
 	var select = elt("select");
-	select.appendChild(elt("option", null, table.elementType));
-	["r", "b", "eraser"].forEach(function(element){
+	select.appendChild(elt("option", null, paint.elementType));
+	["lava"].forEach(function(element){
 		select.appendChild(elt("option", null, element));
 	});
 	select.addEventListener("change", function(){
-		table.elementType = select.value;
+		paint.elementType = select.value;
 	});
 	return elt("span", null, "Elements: ", select);
 }
 
-controls.clear = function(table){
+controls.clear = function(paint){
 	var button = elt("button");
 	button.textContent = "clear";
 	button.addEventListener("click", function(){
 		for(var i=0; i<paintrownum; i++){
 			for(var j=0; j<paintcolnum; j++){
-				table.childNodes[i].childNodes[j].className = null;
+				//paint.childNodes[i].childNodes[j].className = null;
+				paint.className = null;
 			}
 		}
 	});
