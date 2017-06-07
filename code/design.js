@@ -63,14 +63,17 @@ function getGridPos(event, element){
 }
 
 //工具函数，设置鼠标拖动的按键监听
-function trackDrag(onMove, onEnd){
+function trackDrag(onMove, onEnd, table){
 	function end(event){
 		removeEventListener("mousemove", onMove);
 		removeEventListener("mouseup", end);
 		if(onEnd)
 			onEnd(event);
 	}
-	addEventListener("mousemove", onMove);
+	if(table)
+		table.addEventListener("mousemove", onMove);
+	else
+		addEventListener("mousemove", onMove);
 	addEventListener("mouseup", end);
 }
 
@@ -103,7 +106,27 @@ tools.Rect = function(event, table, onEnd){
 				}
 			}
 		}
-	}, onEnd);
+	}, onEnd, table);
+}
+
+//调整位置
+tools.Pick = function(event, table, onEnd){
+	var pos = getGridPos(event, table);
+	var pickstyle = table.childNodes[pos.y].childNodes[pos.x].className;
+	table.childNodes[pos.y].childNodes[pos.x].className=null;
+	var pickout = elt("div", {class: pickstyle, style: "height:20px; width:20px; position:absolute"});
+	table.appendChild(pickout);
+	var rect = table.getBoundingClientRect();
+	pickout.style.left = pos.x*scale+rect.left + "px";
+	pickout.style.top = pos.y*scale+rect.top + "px";
+	trackDrag(function(event){
+		pos = getGridPos(event, table);
+		pickout.style.left = pos.x*scale+rect.left + "px";
+		pickout.style.top = pos.y*scale+rect.top + "px";
+	}, function(event){
+		table.childNodes[pos.y].childNodes[pos.x].className=pickstyle;
+		table.removeChild(pickout);
+	}, table);
 }
 
 controls.element = function(table){
@@ -131,6 +154,4 @@ controls.clear = function(table){
 	return button;
 }
 
-controls.picker = function(table){
-	
-}
+
