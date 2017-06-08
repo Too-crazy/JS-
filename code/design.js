@@ -112,21 +112,10 @@ function trackDrag(onMove, onEnd, paint){
 //用于画线
 tools.Line = function(event, paint, onEnd){
 	var pos = getGridPos(event, paint.canvas);
-	//paint.childNodes[pos.y].childNodes[pos.x].className = paint.elementType;
-	//var tileX = spritesSeq[paint.elementType]*scale;
-	//paint.drawImage(gridSprites,
-					//tileX, 0, scale, scale,
-					//pos.x*scale, pos.y*scale, scale, scale);
-	grid.insertTile(pos.x, pos.y, paint.elementType);
+	grid.insertTile(pos, paint.elementType);
 	trackDrag(function(event){
 		pos = getGridPos(event, paint.canvas);
-		//console.log(pos.x + " " + pos.y);
-		//if(pos.x>=0 && pos.y>=0 && pos.y<paintrownum && pos.x<paintcolnum)
-			//paint.childNodes[pos.y].childNodes[pos.x].className = paint.elementType;
-		//paint.drawImage(gridSprites,
-						//tileX, 0, scale, scale,
-						//pos.x*scale, pos.y*scale, scale, scale);
-		grid.insertTile(pos.x, pos.y, paint.elementType);
+		grid.insertTile(pos, paint.elementType);
 	}, onEnd);
 }
 
@@ -150,11 +139,10 @@ tools.Rect = function(event, paint, onEnd){
 //调整位置
 tools.Pick = function(event, paint, onEnd){
 	var pos = getGridPos(event, paint.canvas);
-	//var pickstyle = paint.childNodes[pos.y].childNodes[pos.x].className;
-	paint.childNodes[pos.y].childNodes[pos.x].className=null;
 	var pickout = elt("div", {style: "height:20px; width:20px; overflow:hidden; position:absolute"}
 						, elt("img", {src: "img/sprites.png"}));
 	paint.canvas.appendChild(pickout);
+	grid.removeTile(pos);
 	var rect = paint.canvas.getBoundingClientRect();
 	pickout.style.left = pos.x*scale+rect.left + "px";
 	pickout.style.top = pos.y*scale+rect.top + "px";
@@ -163,9 +151,9 @@ tools.Pick = function(event, paint, onEnd){
 		pickout.style.left = pos.x*scale+rect.left + "px";
 		pickout.style.top = pos.y*scale+rect.top + "px";
 	}, function(event){
-		paint.childNodes[pos.y].childNodes[pos.x].className=pickstyle;
-		paint.removeChild(pickout);
-	}, paint);
+		grid.insertTile(pos, paint.elementType);
+		paint.canvas.removeChild(pickout);
+	}, paint.canvas);
 }
 
 controls.element = function(paint){

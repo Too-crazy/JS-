@@ -21,12 +21,12 @@ Grid.prototype.empty = function () {
 };
 
 // Inserts a tile at its position
-Grid.prototype.insertTile = function(x, y, tile) {
-	this.cells[x][y] = tile;
+Grid.prototype.insertTile = function(pos, tile) {
+	this.cells[pos.x][pos.y] = tile;
 };
 
-Grid.prototype.removeTile = function(x, y, tile) {
-	this.cells[x][y] = null;
+Grid.prototype.removeTile = function(pos) {
+	this.cells[pos.x][pos.y] = null;
 };
 
 // Call callback for every cell
