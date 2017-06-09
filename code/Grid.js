@@ -20,6 +20,9 @@ Grid.prototype.empty = function () {
 	return cells;
 };
 
+Grid.prototype.getTile = function(pos){
+	return this.cells[pos.x][pos.y];
+}
 // Inserts a tile at its position
 Grid.prototype.insertTile = function(pos, tile) {
 	this.cells[pos.x][pos.y] = tile;

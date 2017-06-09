@@ -42,6 +42,9 @@ function runAnimation(paint){
 	function frame(time){
 		if(lastTime != null){
 			var timeStep = Math.min(time - lastTime, 100) / 1000;
+			paint.fillStyle = "rgb(52, 166, 251)";
+			paint.fillRect(0,0,
+				paint.canvas.width, paint.canvas.height);
 			drawBackground(paint);
 		}
 		lastTime = time;
@@ -139,9 +142,13 @@ tools.Rect = function(event, paint, onEnd){
 //调整位置
 tools.Pick = function(event, paint, onEnd){
 	var pos = getGridPos(event, paint.canvas);
+	pickStyle = grid.getTile(pos);
+	if(!pickStyle)
+		return;
 	var pickout = elt("div", {style: "height:20px; width:20px; overflow:hidden; position:absolute"}
-						, elt("img", {src: "img/sprites.png"}));
-	paint.canvas.appendChild(pickout);
+						, elt("img", {src: "img/sprites.png", style:"position:absolute"}));
+	pickout.childNodes[0].style.left=-spritesSeq[pickStyle]*scale + "px";
+	document.body.appendChild(pickout);
 	grid.removeTile(pos);
 	var rect = paint.canvas.getBoundingClientRect();
 	pickout.style.left = pos.x*scale+rect.left + "px";
@@ -151,8 +158,8 @@ tools.Pick = function(event, paint, onEnd){
 		pickout.style.left = pos.x*scale+rect.left + "px";
 		pickout.style.top = pos.y*scale+rect.top + "px";
 	}, function(event){
-		grid.insertTile(pos, paint.elementType);
-		paint.canvas.removeChild(pickout);
+		grid.insertTile(pos, pickStyle);
+		document.body.removeChild(pickout);
 	}, paint.canvas);
 }
 
