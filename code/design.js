@@ -60,13 +60,6 @@ function createPaint(parent){
 	paint.height = paintrownum*scale;
 	var cx = paint.getContext("2d");
 	cx.elementType = defaultElement;	//给cx加一个新属性，用来区分绘画的元素
-	/*for(var i=0; i<paintrownum; i++){
-		var rowElt = paint.appendChild(elt("tr"));
-		rowElt.style.height = scale + "px"
-		for(var j=0; j<paintcolnum; j++){
-			rowElt.appendChild(elt("td"));
-		}
-	}*/
 	runAnimation(cx);
 	var toolbar = elt("div", {class: "toolbar"});
 	for(var name in controls)
@@ -179,14 +172,16 @@ controls.clear = function(paint){
 	var button = elt("button");
 	button.textContent = "clear";
 	button.addEventListener("click", function(){
-		for(var i=0; i<paintrownum; i++){
-			for(var j=0; j<paintcolnum; j++){
-				//paint.childNodes[i].childNodes[j].className = null;
-				paint.className = null;
-			}
-		}
+		grid.cells = grid.empty();
 	});
 	return button;
 }
 
-
+controls.gametest = function(paint){
+	var button = elt("button");
+	button.textContent = "test";
+	button.addEventListener("click", function(){
+		
+	});
+	return button;
+}
