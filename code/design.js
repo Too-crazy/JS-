@@ -24,8 +24,14 @@ var paintcolnum = 40;	//画布的列数
 //var defaultElement = "wall";
 var grid = new Grid({width:paintcolnum, height:paintrownum});
 var gridSprites = document.createElement("img");
+var manipulateSprites = document.createElement("img");
+var bgSprite = ["wall", "lava"];				//背景元素数组
+var activeSprite = ["type1", "type2"];			//活动元素数组
+var manipulateSprite = ["player1", "player2"];	//操控元素数组
 gridSprites.src = "img/sprites.png";
 var spritesSeq = {"wall": 0, "lava": 1};
+var canvasEvents = [];
+
 
 function drawBackground(paint){
 	grid.eachCell(function(x, y, cell){
@@ -36,6 +42,10 @@ function drawBackground(paint){
 						x*scale, y*scale, scale, scale);
 		}
 	});
+	manipulateSprites.src = "img/"+grid.charatype+".png";
+	paint.drawImage(manipulateSprites,
+						0, 0, 24, 30,
+						grid.startpos.x*scale, (grid.startpos.y+1)*scale-30, 24, 30);
 }
 
 function runAnimation(paint){
@@ -43,7 +53,7 @@ function runAnimation(paint){
 	function frame(time){
 		if(lastTime != null){
 			var timeStep = Math.min(time - lastTime, 100) / 1000;
-			paint.fillStyle = "rgb(52, 166, 251)";
+			paint.fillStyle = "rgb(155, 166, 251)";
 			paint.fillRect(0,0,
 				paint.canvas.width, paint.canvas.height);
 			drawBackground(paint);
@@ -54,6 +64,7 @@ function runAnimation(paint){
 	requestAnimationFrame(frame);
 }
 
+//启动函数
 function createPaint(parent){
 	var paint = elt("table", {class: "background"});
 	var paint = elt("canvas");
@@ -66,19 +77,22 @@ function createPaint(parent){
 	for(var name in controls)
 		toolbar.appendChild(controls[name](cx));
 	var panel = elt("div", {class: "drawpanel"}, paint);
-	parent.appendChild(elt("div", null, panel, toolbar));
+	parent.appendChild(elt("div",{id:"mainplain"}, panel, toolbar));
 }
 
 controls.tool = function(paint){
 	var select = elt("select");
 	for(var name in tools)
 		select.appendChild(elt("option", null, name));
-	paint.canvas.addEventListener("mousedown", function(event){
+	//画布上的tools按键监听
+	var tooldown = function(event){
 		if(event.which==1){
 			tools[select.value](event, paint);
 			event.preventDefault();
 		}
-	});
+	}
+	canvasEvents.push(tooldown);
+	paint.canvas.addEventListener("mousedown", tooldown);
 	return elt("span", null, "Tools: ", select);
 }
 
@@ -91,6 +105,8 @@ controls.element = function(paint){
 	span.appendChild(detail);
 	select.addEventListener("change", function(){
 		span.removeChild(detail);
+		paint.canvas.removeEventListener("mousedown", canvasEvents[1]);
+		paint.canvas.addEventListener("mousedown", canvasEvents[0]);
 		detail = elements[select.value](paint);
 		span.appendChild(detail);
 	});
@@ -135,17 +151,15 @@ tools.Line = function(event, paint, onEnd){
 tools.Rect = function(event, paint, onEnd){
 	var pos = getGridPos(event, paint.canvas);
 	var pos_start = pos;
-	//paint.childNodes[pos.y].childNodes[pos.x].className = paint.elementType;
-	var tileX = spritesSeq[paint.elementType]*scale;
-	paint.drawImage(gridSprites,
-					tileX, 0, scale, scale,
-					pos.x*scale, pos.y*scale, scale, scale);
+	grid.insertTile(pos_start, paint.elementType);
 	trackDrag(function(event){
+		
+	}, function(event){
 		pos = getGridPos(event, paint.canvas);
-		paint.drawImage(gridSprites,
-					tileX, 0, scale, scale,
-					pos.x*scale, pos.y*scale, (pos_start.x-pos.x)*scale, (pos_start.y-pos.y)*scale);
-	}, onEnd);
+		for(var i=pos_start.x; i<=pos.x; i++)
+			for(var j=pos_start.y; j<=pos.y; j++)
+				grid.insertTile({x:i, y:j}, paint.elementType);
+	});
 }
 
 //调整位置
@@ -174,9 +188,8 @@ tools.Pick = function(event, paint, onEnd){
 
 elements.bgElement = function(paint){
 	var select = elt("select");
-	paint.elementType = "wall";
-	//select.appendChild(elt("option", null, paint.elementType));
-	["wall","lava"].forEach(function(element){
+	paint.elementType = bgSprite[0];
+	bgSprite.forEach(function(element){
 		select.appendChild(elt("option", null, element));
 	});
 	select.addEventListener("change", function(){
@@ -187,8 +200,8 @@ elements.bgElement = function(paint){
 
 elements.activeElement = function(paint){
 	var select = elt("select");
-	select.appendChild(elt("option", null, paint.elementType));
-	["lava"].forEach(function(element){
+	paint.elementType = activeSprite[0];
+	activeSprite.forEach(function(element){
 		select.appendChild(elt("option", null, element));
 	});
 	select.addEventListener("change", function(){
@@ -199,13 +212,20 @@ elements.activeElement = function(paint){
 
 elements.playerElement = function(paint){
 	var select = elt("select");
-	select.appendChild(elt("option", null, paint.elementType));
-	["lava"].forEach(function(element){
+	paint.elementType = manipulateSprite[0];
+	manipulateSprite.forEach(function(element){
 		select.appendChild(elt("option", null, element));
 	});
-	select.addEventListener("change", function(){
-		paint.elementType = select.value;
-	});
+	paint.canvas.removeEventListener("mousedown", canvasEvents[0]);
+	var playerdown = function(event){
+		if(event.which==1){
+			grid.startpos = getGridPos(event, paint.canvas);
+			grid.charatype = select.value;
+			event.preventDefault();
+		}
+	}
+	canvasEvents.push(playerdown);
+	paint.canvas.addEventListener("mousedown", playerdown);
 	return elt("span", null, "Player Sprites: ", select);
 }
 
@@ -222,7 +242,8 @@ controls.gametest = function(paint){
 	var button = elt("button");
 	button.textContent = "test";
 	button.addEventListener("click", function(){
-		
+		document.getElementById("main-container").removeChild(mainplain);
+		//runGame(grids);
 	});
 	return button;
 }

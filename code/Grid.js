@@ -1,11 +1,14 @@
 /*Grid对象类型用于：
-1.存储设计关卡时的关卡内容
-2.
+存储设计关卡时的关卡内容
 因为关卡的内容是网格状的，游戏中一个元素占网格的一个格子，所以存储时将内容存成一个数组。
 */
-function Grid(size, previousState){
+function Grid(size, previousState, charactor){
 	this.size = size;
 	this.cells = previousState ? this.fromState(previousState) : this.empty();
+	//角色的起始位置
+	this.startpos = charactor ? charactor.pos : {x:0, y:0};
+	//角色类型
+	this.charatype = charactor ? charactor.type : "player1";
 }
 
 // Build a grid of the specified size

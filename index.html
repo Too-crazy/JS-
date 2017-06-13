@@ -1,13 +1,14 @@
 <!doctype html>
-
-<script src="code/Grid.js"></script>
-<script src="code/game.js"></script>
-<script src="code/design.js"></script>
-<link rel="stylesheet" href="css/game.css">
-
+<head>
+	<script src="code/Grid.js"></script>
+	<script src="code/game.js"></script>
+	<script src="code/design.js"></script>
+	<link rel="stylesheet" href="css/game.css">
+	
+</head>
 <body>
-	<script>
-		createPaint(document.body);
-	</script>
-
+	<div id="main-container" style="text-align: center;">
+		<h1>Demo</h1>
+	</div>
+	<script>createPaint(document.getElementById("main-container"));</script>
 </body>
