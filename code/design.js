@@ -17,10 +17,11 @@ function elt(name, attributes){
 
 var controls = Object.create(null);	//画布下方的控制区域对象
 var tools = Object.create(null);	//控制区域中的工具对象
+var elements = Object.create(null);	//控制区域中的选择元素对象
 var scale = 20;
 var paintrownum = 20;	//画布的行数
 var paintcolnum = 40;	//画布的列数
-var defaultElement = "wall";
+//var defaultElement = "wall";
 var grid = new Grid({width:paintcolnum, height:paintrownum});
 var gridSprites = document.createElement("img");
 gridSprites.src = "img/sprites.png";
@@ -59,7 +60,7 @@ function createPaint(parent){
 	paint.width = paintcolnum*scale;
 	paint.height = paintrownum*scale;
 	var cx = paint.getContext("2d");
-	cx.elementType = defaultElement;	//给cx加一个新属性，用来区分绘画的元素
+	cx.elementType = null;	//给cx加一个新属性，用来区分绘画的元素
 	runAnimation(cx);
 	var toolbar = elt("div", {class: "toolbar"});
 	for(var name in controls)
@@ -79,6 +80,21 @@ controls.tool = function(paint){
 		}
 	});
 	return elt("span", null, "Tools: ", select);
+}
+
+controls.element = function(paint){
+	var select = elt("select");
+	var span = elt("span", null, "Elements: ", select);
+	for(var name in elements)
+		select.appendChild(elt("option", null, name));
+	var detail = elements[select.value](paint);
+	span.appendChild(detail);
+	select.addEventListener("change", function(){
+		span.removeChild(detail);
+		detail = elements[select.value](paint);
+		span.appendChild(detail);
+	});
+	return span;
 }
 
 //用于获得画布中的网格坐标
@@ -156,7 +172,20 @@ tools.Pick = function(event, paint, onEnd){
 	}, paint.canvas);
 }
 
-controls.element = function(paint){
+elements.bgElement = function(paint){
+	var select = elt("select");
+	paint.elementType = "wall";
+	//select.appendChild(elt("option", null, paint.elementType));
+	["wall","lava"].forEach(function(element){
+		select.appendChild(elt("option", null, element));
+	});
+	select.addEventListener("change", function(){
+		paint.elementType = select.value;
+	});
+	return elt("span", null, "Background Sprites: ", select);
+}
+
+elements.activeElement = function(paint){
 	var select = elt("select");
 	select.appendChild(elt("option", null, paint.elementType));
 	["lava"].forEach(function(element){
@@ -165,7 +194,19 @@ controls.element = function(paint){
 	select.addEventListener("change", function(){
 		paint.elementType = select.value;
 	});
-	return elt("span", null, "Elements: ", select);
+	return elt("span", null, "Active Sprites: ", select);
+}
+
+elements.playerElement = function(paint){
+	var select = elt("select");
+	select.appendChild(elt("option", null, paint.elementType));
+	["lava"].forEach(function(element){
+		select.appendChild(elt("option", null, element));
+	});
+	select.addEventListener("change", function(){
+		paint.elementType = select.value;
+	});
+	return elt("span", null, "Player Sprites: ", select);
 }
 
 controls.clear = function(paint){
