@@ -66,10 +66,32 @@ function runAnimation(paint){
 
 //启动函数
 function createPaint(parent){
-	var paint = elt("table", {class: "background"});
 	var paint = elt("canvas");
 	paint.width = paintcolnum*scale;
 	paint.height = paintrownum*scale;
+	var inputw = elt("input", {class: "settinginput"});
+	inputw.value = paintcolnum;
+	var inputh = elt("input", {class: "settinginput"});
+	inputh.value = paintrownum;
+	var ok = elt("button");
+	ok.textContent = "OK";
+	ok.addEventListener("click", function(){
+
+		paint.width=inputw.value * scale;
+		paint.height=inputh.value * scale;
+		grid.resize({width:paint.width, height:paint.height});
+	});
+	var reset = elt("button");
+	reset.textContent = "reset";
+	reset.addEventListener("click", function(){
+		inputw.value = paintcolnum;
+		inputh.value = paintrownum;
+		paint.width = paintcolnum*scale;
+		paint.height = paintrownum*scale;
+	});
+	var canvasset = elt("div", {class: "setting"},
+		 elt("span", null, "width: ", inputw),
+		 elt("span", null, "height: ", inputh), ok, reset);
 	var cx = paint.getContext("2d");
 	cx.elementType = null;	//给cx加一个新属性，用来区分绘画的元素
 	runAnimation(cx);
@@ -77,7 +99,7 @@ function createPaint(parent){
 	for(var name in controls)
 		toolbar.appendChild(controls[name](cx));
 	var panel = elt("div", {class: "drawpanel"}, paint);
-	parent.appendChild(elt("div",{id:"mainplain"}, panel, toolbar));
+	parent.appendChild(elt("div",{id:"mainplain"}, canvasset, panel, toolbar));
 }
 
 controls.tool = function(paint){
@@ -174,12 +196,12 @@ tools.Pick = function(event, paint, onEnd){
 	document.body.appendChild(pickout);
 	grid.removeTile(pos);
 	var rect = paint.canvas.getBoundingClientRect();
-	pickout.style.left = pos.x*scale+rect.left + "px";
-	pickout.style.top = pos.y*scale+rect.top + "px";
+	pickout.style.left = pos.x*scale+rect.left+window.scrollX + "px";
+	pickout.style.top = pos.y*scale+rect.top+window.scrollY + "px";
 	trackDrag(function(event){
 		pos = getGridPos(event, paint.canvas);
-		pickout.style.left = pos.x*scale+rect.left + "px";
-		pickout.style.top = pos.y*scale+rect.top + "px";
+		pickout.style.left = pos.x*scale+rect.left+window.scrollX + "px";
+		pickout.style.top = pos.y*scale+rect.top+window.scrollY + "px";
 	}, function(event){
 		grid.insertTile(pos, pickStyle);
 		document.body.removeChild(pickout);

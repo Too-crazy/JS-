@@ -1,13 +1,13 @@
-/*Grid¶ÔÏóÀàÐÍÓÃÓÚ£º
-´æ´¢Éè¼Æ¹Ø¿¨Ê±µÄ¹Ø¿¨ÄÚÈÝ
-ÒòÎª¹Ø¿¨µÄÄÚÈÝÊÇÍø¸ñ×´µÄ£¬ÓÎÏ·ÖÐÒ»¸öÔªËØÕ¼Íø¸ñµÄÒ»¸ö¸ñ×Ó£¬ËùÒÔ´æ´¢Ê±½«ÄÚÈÝ´æ³ÉÒ»¸öÊý×é¡£
+/*Gridå¯¹è±¡ç±»åž‹ç”¨äºŽï¼š
+å­˜å‚¨è®¾è®¡å…³å¡æ—¶çš„å…³å¡å†…å®¹
+å› ä¸ºå…³å¡çš„å†…å®¹æ˜¯ç½‘æ ¼çŠ¶çš„ï¼Œæ¸¸æˆä¸­ä¸€ä¸ªå…ƒç´ å ç½‘æ ¼çš„ä¸€ä¸ªæ ¼å­ï¼Œæ‰€ä»¥å­˜å‚¨æ—¶å°†å†…å®¹å­˜æˆä¸€ä¸ªæ•°ç»„ã€‚
 */
 function Grid(size, previousState, charactor){
 	this.size = size;
 	this.cells = previousState ? this.fromState(previousState) : this.empty();
-	//½ÇÉ«µÄÆðÊ¼Î»ÖÃ
+	//è§’è‰²çš„èµ·å§‹ä½ç½®
 	this.startpos = charactor ? charactor.pos : {x:0, y:0};
-	//½ÇÉ«ÀàÐÍ
+	//è§’è‰²ç±»åž‹
 	this.charatype = charactor ? charactor.type : "player1";
 }
 
@@ -22,6 +22,15 @@ Grid.prototype.empty = function () {
 	}
 	return cells;
 };
+
+//ç½‘æ ¼å¯¹è±¡é‡æ–°è°ƒæ•´å¤§å°ï¼Œä»…ä»…æ”¹å˜sizeå˜é‡å¯èƒ½ä¼šå‡ºé”™
+Grid.prototype.resize = function(size){
+	if(size.width > this.size.width)
+		for (var x = this.size.width; x < size.width; x++) {
+			this.cells[x] = [];
+		}
+	this.size = size;	
+}
 
 Grid.prototype.getTile = function(pos){
 	return this.cells[pos.x][pos.y];
