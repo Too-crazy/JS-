@@ -48,7 +48,7 @@ function drawBackground(paint){
 						grid.startpos.x*scale, (grid.startpos.y+1)*scale-30, 24, 30);
 }
 
-function runAnimation(paint){
+function runAnimationD(paint){
 	var lastTime = null;
 	function frame(time){
 		if(lastTime != null){
@@ -94,7 +94,7 @@ function createPaint(parent){
 		 elt("span", null, "height: ", inputh), ok, reset);
 	var cx = paint.getContext("2d");
 	cx.elementType = null;	//给cx加一个新属性，用来区分绘画的元素
-	runAnimation(cx);
+	runAnimationD(cx);
 	var toolbar = elt("div", {class: "toolbar"});
 	for(var name in controls)
 		toolbar.appendChild(controls[name](cx));
@@ -241,7 +241,8 @@ elements.playerElement = function(paint){
 	paint.canvas.removeEventListener("mousedown", canvasEvents[0]);
 	var playerdown = function(event){
 		if(event.which==1){
-			grid.startpos = getGridPos(event, paint.canvas);
+			pos = getGridPos(event, paint.canvas);
+			grid.startpos = new Vector(pos.x, pos.y);
 			grid.charatype = select.value;
 			event.preventDefault();
 		}
@@ -266,6 +267,7 @@ controls.gametest = function(paint){
 	button.addEventListener("click", function(){
 		document.getElementById("main-container").removeChild(mainplain);
 		//runGame(grids);
+		runGame(grid,CanvasDisplay);
 	});
 	return button;
 }
