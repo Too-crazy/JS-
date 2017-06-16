@@ -12,6 +12,7 @@ function Level(grid){
 	});
 	var Actor = actorChars[grid.charatype];
 	this.player = new Actor(grid.startpos);
+	this.actors.push(this.player);
 	this.status = this.finishDelay = null;
 }
 Level.prototype.isFinished = function() {
@@ -366,7 +367,7 @@ CanvasDisplay.prototype.drawActors = function() {
 
 
 function runLevel(level, Display, andThen) {
-  var display = new Display(document.body, level);
+  var display = new Display(document.getElementById("main-container"), level);
   runAnimation(function(step) {
     level.animate(step, arrows);
     display.drawFrame(step);

@@ -6,7 +6,7 @@ function Grid(size, previousState, charactor){
 	this.size = size;
 	this.cells = previousState ? this.fromState(previousState) : this.empty();
 	//角色的起始位置
-	this.startpos = charactor ? charactor.pos : new Vector(0,0);
+	this.startpos = charactor ? charactor.pos : new Vector(this.size.width/3,this.size.height/2);
 	//角色类型
 	this.charatype = charactor ? charactor.type : "player1";
 }
