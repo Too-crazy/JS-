@@ -26,10 +26,10 @@ var grid = new Grid({width:paintcolnum, height:paintrownum});
 var gridSprites = document.createElement("img");
 var manipulateSprites = document.createElement("img");
 var bgSprite = ["wall", "lava"];				//背景元素数组
-var activeSprite = ["type1", "type2"];			//活动元素数组
+var activeSprite = ["coin", "type1", "type2"];			//活动元素数组
 var manipulateSprite = ["player1", "player2"];	//操控元素数组
 gridSprites.src = "img/sprites.png";
-var spritesSeq = {"wall": 0, "lava": 1};
+var spritesSeq = {"wall": 0, "lava": 1, "coin": 2};
 var canvasEvents = [];
 
 
@@ -79,7 +79,9 @@ function createPaint(parent){
 
 		paint.width=inputw.value * scale;
 		paint.height=inputh.value * scale;
-		grid.resize({width:paint.width, height:paint.height});
+		grid.resize({width:inputw.value, height:inputh.value});
+		grid.startpos.x = Math.floor(grid.size.width/3);
+		grid.startpos.y = Math.floor(grid.size.height/2);
 	});
 	var reset = elt("button");
 	reset.textContent = "reset";

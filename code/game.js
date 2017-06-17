@@ -5,10 +5,11 @@ function Level(grid){
 	this.grid = grid.cells;//网格
 	this.actors = [];//活动元素
 	
+	var self=this;
 	grid.eachCell(function(x, y, ch){
 		var Actor = actorChars[ch];
 		  if (Actor)
-			this.actors.push(new Actor(new Vector(x, y), ch));
+			self.actors.push(new Actor(new Vector(x, y), ch));
 	});
 	var Actor = actorChars[grid.charatype];
 	this.player = new Actor(grid.startpos);
@@ -81,8 +82,8 @@ Level.prototype.obstacleAt = function(pos, size) {
     return "lava";
   for (var y = yStart; y < yEnd; y++) {
     for (var x = xStart; x < xEnd; x++) {
-      var fieldType = this.grid[y][x];
-      if (fieldType) return fieldType;
+      var fieldType = this.grid[x][y];
+      if (fieldType && !actorChars[fieldType]) return fieldType;
     }
   }
 };
@@ -232,7 +233,11 @@ function runAnimation(frameFunc) {
 
 var arrows = trackKeys(arrowCodes);
 
-
+function flipHorizontally(context, around) {
+  context.translate(around, 0);
+  context.scale(-1, 1);
+  context.translate(-around, 0);
+}
 
 function CanvasDisplay(parent, level) {
   this.canvas = document.createElement("canvas");
@@ -312,7 +317,8 @@ CanvasDisplay.prototype.drawBackground = function() {
       if (tile == null) continue;
       var screenX = (x - view.left) * scale;
       var screenY = (y - view.top) * scale;
-      var tileX = tile == "lava" ? scale : 0;
+	  var spritesSeq = {"wall": 0, "lava": 1};
+      var tileX = spritesSeq[tile]*scale;
       this.cx.drawImage(otherSprites,
                         tileX,         0, scale, scale,
                         screenX, screenY, scale, scale);
