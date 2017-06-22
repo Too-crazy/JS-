@@ -1,3 +1,4 @@
+var nullType = " ";
 //读取关卡
 function Level(grid){
 	this.width = grid.size.width;//地图宽度
@@ -83,7 +84,7 @@ Level.prototype.obstacleAt = function(pos, size) {
   for (var y = yStart; y < yEnd; y++) {
     for (var x = xStart; x < xEnd; x++) {
       var fieldType = this.grid[x][y];
-      if (fieldType && !actorChars[fieldType]) return fieldType;
+      if (fieldType!=nullType && !actorChars[fieldType]) return fieldType;
     }
   }
 };
@@ -117,7 +118,7 @@ Level.prototype.animate = function(step, keys) {
 
 Lava.prototype.act = function(step, level) {
   var newPos = this.pos.plus(this.speed.times(step));
-  if (!level.obstacleAt(newPos, this.size))
+  if (level.obstacleAt(newPos, this.size)==" ")
     this.pos = newPos;
   else if (this.repeatPos)
     this.pos = this.repeatPos;
@@ -314,7 +315,7 @@ CanvasDisplay.prototype.drawBackground = function() {
   for (var y = yStart; y < yEnd; y++) {
     for (var x = xStart; x < xEnd; x++) {
       var tile = this.level.grid[x][y];
-      if (tile == null) continue;
+      if (tile == nullType) continue;
       var screenX = (x - view.left) * scale;
       var screenY = (y - view.top) * scale;
 	  var spritesSeq = {"wall": 0, "lava": 1};

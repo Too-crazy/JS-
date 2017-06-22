@@ -18,11 +18,26 @@ Grid.prototype.empty = function () {
 	var cells = [];
 	for (var x = 0; x < this.size.width; x++) {
 		var row = cells[x] = [];
-		for (var y = 0; y < this.size.heght; y++) {
-			row.push(null);
+		for (var y = 0; y < this.size.height; y++) {
+			row.push(" ");
 		}
 	}
 	return cells;
+};
+
+Grid.prototype.fromState = function (state) {
+    var cells = [];
+
+    for (var x = 0; x < this.size.width; x++) {
+        var row = cells[x] = [];
+
+        for (var y = 0; y < this.size.height; y++) {
+            var tile = state[x][y];
+            row.push(tile ? tile: null);
+        }
+    }
+
+    return cells;
 };
 
 //网格对象重新调整大小，仅仅改变size变量可能会出错
