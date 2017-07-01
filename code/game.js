@@ -34,18 +34,27 @@ Vector.prototype.times = function(factor) {
 
 //关联活动元素
 var actorChars = {
-  "player1": Player,
+  "player1": Player1,
+  "player2": Player2,
   "coin": Coin,
   "lava1": Lava, "lava2": Lava
 };
 
-//生成玩家类型
-function Player(pos) {
+//生成玩家类型1
+function Player1(pos) {
   this.pos = pos.plus(new Vector(0, -0.5));
   this.size = new Vector(0.8, 1.5);
   this.speed = new Vector(0, 0);
 }
-Player.prototype.type = "player1";
+Player1.prototype.type = "player1";
+
+//生成玩家类型2
+function Player2(pos) {
+  this.pos = pos.plus(new Vector(0, -0.5));
+  this.size = new Vector(0.8, 1.5);
+  this.speed = new Vector(0, 0);
+}
+Player2.prototype.type = "player2";
 
 //熔浆对象
 function Lava(pos, ch) {
@@ -67,8 +76,6 @@ function Coin(pos) {
   this.wobble = Math.random() * Math.PI * 2;
 }
 Coin.prototype.type = "coin";
-
-
 
 
 Level.prototype.obstacleAt = function(pos, size) {
@@ -136,7 +143,7 @@ Coin.prototype.act = function(step) {
 
 var playerXSpeed = 7;
 
-Player.prototype.moveX = function(step, level, keys) {
+Player1.prototype.moveX = function(step, level, keys) {
   this.speed.x = 0;
   if (keys.left) this.speed.x -= playerXSpeed;
   if (keys.right) this.speed.x += playerXSpeed;
@@ -153,7 +160,7 @@ Player.prototype.moveX = function(step, level, keys) {
 var gravity = 30;
 var jumpSpeed = 17;
 
-Player.prototype.moveY = function(step, level, keys) {
+Player1.prototype.moveY = function(step, level, keys) {
   this.speed.y += step * gravity;
   var motion = new Vector(0, this.speed.y * step);
   var newPos = this.pos.plus(motion);
@@ -169,7 +176,7 @@ Player.prototype.moveY = function(step, level, keys) {
   }
 };
 
-Player.prototype.act = function(step, level, keys) {
+Player1.prototype.act = function(step, level, keys) {
   this.moveX(step, level, keys);
   this.moveY(step, level, keys);
 
@@ -182,6 +189,20 @@ Player.prototype.act = function(step, level, keys) {
     this.pos.y += step;
     this.size.y -= step;
   }
+};
+
+Player2.prototype.moveX = function(step, level, keys) {
+  this.speed.x = 0;
+  if (keys.left) this.speed.x -= playerXSpeed;
+  if (keys.right) this.speed.x += playerXSpeed;
+
+  var motion = new Vector(this.speed.x * step, 0);
+  var newPos = this.pos.plus(motion);
+  var obstacle = level.obstacleAt(newPos, this.size);
+  if (obstacle)
+    level.playerTouched(obstacle);
+  else
+    this.pos = newPos;
 };
 
 Level.prototype.playerTouched = function(type, actor) {
